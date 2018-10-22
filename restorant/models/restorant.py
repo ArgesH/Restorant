@@ -19,12 +19,20 @@ class Menu(models.Model):
     cmimi = fields.Float(string="Cmimi")
     menu_dite = fields.Boolean(string="Menu Ditore")
 
+    @api.one
+    def mundeso(self):
+        self.menu_dite = True
+
+    @api.one
+    def hiq(self):
+        self.menu_dite = False
+
 class Kamarier(models.Model):
     _name = "restorant.kamarier"
     _description = "Kamarier"
 
-    name = fields.Char(string="Kamarier_Id")
-    emri = fields.Char(string="Emri")
+    name = fields.Char(string="Emri")
+    emri = fields.Char(string="Kamarier_Id")
     mbiemri = fields.Char(string="Mbiemri")
     informacion = fields.Text(string="Info")
 
@@ -33,7 +41,7 @@ class Tavolina(models.Model):
     _description = "Tavolina"
 
     name = fields.Char(string="Numri Tavolines")
-    id_kamarier = fields.Many2one('restorant.kamarier', string="Kamarier_Id")
+    id_kamarier = fields.Many2one('restorant.kamarier', string="Kamarier")
 
     state = fields.Selection([
         ('perfunduar', 'Bosh'),
@@ -50,13 +58,6 @@ class Tavolina(models.Model):
                 if ids:
                     ids.write({'status': tavolina.state})
 
-    # @api.multi
-    # def cancel(self):
-    #     for tavolina in self:
-    #             if tavolina.state:
-    #                 self.env['restorant.porosi'].search([('tavolina_id', '=', tavolina.name)]).unlink()
-    #     self.state = 'liruar'
-
 class Porosi(models.Model):
     _name = "restorant.porosi"
     _description = "Porosi"
@@ -64,7 +65,7 @@ class Porosi(models.Model):
     name = fields.Char(string="Emri Porosise")
     tavolina_id = fields.Many2one('restorant.tavolina', string="Tavolina_Id")
     menu_ids = fields.Many2many('restorant.menu', string='Menus')
-    cmimi_total = fields.Float(compute="_get_total_price", string="Cmimi")
+    cmimi_total = fields.Float(compute='_get_total_price', string="Cmimi")
     status = fields.Selection([
         ('bosh', 'Ne Krijim'),
         ('krijuar', 'Krijuar'),
@@ -97,6 +98,7 @@ class Porosi(models.Model):
                 for tavolina in porosi.tavolina_id:
                     tavolina.write({'state': self.status})
 
+    @api.onchange('status')
     @api.multi
     def _get_total_price(self):
         for porosi in self:
@@ -105,11 +107,3 @@ class Porosi(models.Model):
                 for menu in porosi.menu_ids:
                     cmimi += menu.cmimi
             self.cmimi_total = cmimi
-
-# class SasiPorosi(models.Model):
-#     _name = "restorant.sasiporosi"
-#     _description = "Sasia e Porosise"
-#
-#     menu = fields.Many2many('restorant.menu', string="Menus")
-#     sasia = fields.Integer(string="Sasia")
-#     porosia = fields.Many2one('restorant.porosi', string="Porosia")
